@@ -15,13 +15,11 @@ import svg from './typr.svg';
 
 const Typr = {};
 
-Typr.cmap = cmap;
-
 Typr.parse = function(buff)
 {
-	var readFont = function(data, idx, offset,tmap) {
+	const readFont = function(data, idx, offset,tmap) {
 		
-		var prsr = {
+		const prsr = {
 			"cmap": cmap,
 			"head": head,
 			"hhea": hhea,
@@ -44,12 +42,13 @@ Typr.parse = function(buff)
 			"SVG ": svg
 			//"VORG",
 		};
-		var obj = {"_data":data, "_index":idx, "_offset":offset};
+		const obj = {"_data":data, "_index":idx, "_offset":offset};
 		
-		for(var t in prsr) {
-			var tab = Typr.findTable(data, t, offset);
+		for(const t in prsr) {
+			const tab = Typr.findTable(data, t, offset);
 			if(tab) {
-				var off=tab[0], tobj = tmap[off];
+				const off=tab[0];
+				let tobj = tmap[off];
 				if(tobj==null) tobj = prsr[t].parseTab(data, off, tab[1], obj);
 				obj[t] = tmap[off] = tobj;
 			}
@@ -57,18 +56,18 @@ Typr.parse = function(buff)
 		return obj;
 	}
 	
-	var data = new Uint8Array(buff);
+	const data = new Uint8Array(buff);
 	
-	var tmap = {};
-	var tag = bin.readASCII(data, 0, 4);  
+	const tmap = {};
+	const tag = bin.readASCII(data, 0, 4);  
 	if(tag=="ttcf") {
-		var offset = 4;
-		var majV = bin.readUshort(data, offset);  offset+=2;
-		var minV = bin.readUshort(data, offset);  offset+=2;
-		var numF = bin.readUint  (data, offset);  offset+=4;
-		var fnts = [];
-		for(var i=0; i<numF; i++) {
-			var foff = bin.readUint  (data, offset);  offset+=4;
+		let offset = 4;
+		const majV = bin.readUshort(data, offset);  offset+=2;
+		const minV = bin.readUshort(data, offset);  offset+=2;
+		const numF = bin.readUint  (data, offset);  offset+=4;
+		const fnts = [];
+		for(let i = 0; i < numF; i++) {
+			const foff = bin.readUint  (data, offset);  offset+=4;
 			fnts.push(readFont(data, i, foff,tmap));
 		}
 		return fnts;
@@ -79,14 +78,14 @@ Typr.parse = function(buff)
 
 Typr.findTable = function(data, tab, foff)
 {
-	var numTables = bin.readUshort(data, foff+4);
-	var offset = foff+12;
-	for(var i=0; i<numTables; i++)
+	const numTables = bin.readUshort(data, foff+4);
+	let offset = foff+12;
+	for(let i = 0; i < numTables; i++)
 	{
-		var tag      = bin.readASCII(data, offset, 4); 
-		var checkSum = bin.readUint (data, offset+ 4);
-		var toffset  = bin.readUint (data, offset+ 8); 
-		var length   = bin.readUint (data, offset+12);
+		const tag      = bin.readASCII(data, offset, 4); 
+		const checkSum = bin.readUint (data, offset+ 4);
+		const toffset  = bin.readUint (data, offset+ 8); 
+		const length   = bin.readUint (data, offset+12);
 		if(tag==tab) return [toffset,length];
 		offset+=16;
 	}
@@ -95,28 +94,28 @@ Typr.findTable = function(data, tab, foff)
 /*
 Typr.splitBy = function(data,tag) {
 	data = new Uint8Array(data);  console.log(data.slice(0,64));
-	var ttcf = bin.readASCII(data, 0, 4);  if(ttcf!="ttcf") return {};
+	const ttcf = bin.readASCII(data, 0, 4);  if(ttcf!="ttcf") return {};
 	
-	var offset = 8;
-	var numF = bin.readUint  (data, offset);  offset+=4;
-	var colls = [], used={};
-	for(var i=0; i<numF; i++) {
-		var foff = bin.readUint  (data, offset);  offset+=4;
-		var toff = Typr.findTable(data,tag,foff)[0];
+	const offset = 8;
+	const numF = bin.readUint  (data, offset);  offset+=4;
+	const colls = [], used={};
+	for(const i=0; i<numF; i++) {
+		const foff = bin.readUint  (data, offset);  offset+=4;
+		const toff = Typr.findTable(data,tag,foff)[0];
 		if(used[toff]==null) used[toff] = [];
 		used[toff].push([foff,bin.readUshort(data,foff+4)]);  // font offset, numTables
 	}
-	for(var toff in used) {
-		var offs = used[toff];
-		var hlen = 12+4*offs.length;
-		var out = new Uint8Array(hlen);		
-		for(var i=0; i<8; i++) out[i]=data[i];
+	for(const toff in used) {
+		const offs = used[toff];
+		const hlen = 12+4*offs.length;
+		const out = new Uint8Array(hlen);		
+		for(const i=0; i<8; i++) out[i]=data[i];
 		bin.writeUint(out,8,offs.length);
 		
-		for(var i=0; i<offs.length; i++) hlen += 12+offs[i][1]*16;
+		for(const i=0; i<offs.length; i++) hlen += 12+offs[i][1]*16;
 		
-		var hdrs = [out], tabs = [], hoff=out.length, toff=hlen, noffs={};
-		for(var i=0; i<offs.length; i++) {
+		const hdrs = [out], tabs = [], hoff=out.length, toff=hlen, noffs={};
+		for(const i=0; i<offs.length; i++) {
 			bin.writeUint(out, 12+i*4, hoff);  hoff+=12+offs[i][1]*16;
 			toff = Typr._cutFont(data, offs[i][0], hdrs, tabs, toff, noffs);
 		}
@@ -127,13 +126,13 @@ Typr.splitBy = function(data,tag) {
 
 Typr.splitFonts = function(data) {
 	data = new Uint8Array(data);
-	var ttcf = bin.readASCII(data, 0, 4);  if(ttcf!="ttcf") return {};
+	const ttcf = bin.readASCII(data, 0, 4);  if(ttcf!="ttcf") return {};
 	
-	var offset = 8;
-	var numF = bin.readUint  (data, offset);  offset+=4;
-	var fnts = [];
-	for(var i=0; i<numF; i++) {
-		var foff = bin.readUint  (data, offset);  offset+=4;
+	const offset = 8;
+	const numF = bin.readUint  (data, offset);  offset+=4;
+	const fnts = [];
+	for(const i=0; i<numF; i++) {
+		const foff = bin.readUint  (data, offset);  offset+=4;
 		fnts.push(Typr._cutFont(data, foff));
 		break;
 	}
@@ -141,22 +140,22 @@ Typr.splitFonts = function(data) {
 }
 
 Typr._cutFont = function(data,foff,hdrs,tabs,toff, noffs) {
-	var numTables = bin.readUshort(data, foff+4);
+	const numTables = bin.readUshort(data, foff+4);
 	
-	var out = new Uint8Array(12+numTables*16);  hdrs.push(out);
-	for(var i=0; i<12; i++) out[i]=data[foff+i];  //console.log(out);
+	const out = new Uint8Array(12+numTables*16);  hdrs.push(out);
+	for(const i=0; i<12; i++) out[i]=data[foff+i];  //console.log(out);
 	
-	var off = 12;
-	for(var i=0; i<numTables; i++)
+	const off = 12;
+	for(const i=0; i<numTables; i++)
 	{
-		var tag      = bin.readASCII(data, foff+off, 4); 
-		var checkSum = bin.readUint (data, foff+off+ 4);
-		var toffset  = bin.readUint (data, foff+off+ 8); 
-		var length   = bin.readUint (data, foff+off+12);
+		const tag      = bin.readASCII(data, foff+off, 4); 
+		const checkSum = bin.readUint (data, foff+off+ 4);
+		const toffset  = bin.readUint (data, foff+off+ 8); 
+		const length   = bin.readUint (data, foff+off+12);
 		
 		while((length&3)!=0) length++;
 		
-		for(var j=0; j<16; j++) out[off+j]=data[foff+off+j];
+		for(const j=0; j<16; j++) out[off+j]=data[foff+off+j];
 		
 		if(noffs[toffset]!=null) bin.writeUint(out,off+8,noffs[toffset]);
 		else {
@@ -169,12 +168,12 @@ Typr._cutFont = function(data,foff,hdrs,tabs,toff, noffs) {
 	return toff;
 }
 Typr._joinArrs = function(tabs) {
-	var len = 0;
-	for(var i=0; i<tabs.length; i++) len+=tabs[i].length;
-	var out = new Uint8Array(len), ooff=0;
-	for(var i=0; i<tabs.length; i++) {
-		var tab = tabs[i];
-		for(var j=0; j<tab.length; j++) out[ooff+j]=tab[j];
+	const len = 0;
+	for(const i=0; i<tabs.length; i++) len+=tabs[i].length;
+	const out = new Uint8Array(len), ooff=0;
+	for(const i=0; i<tabs.length; i++) {
+		const tab = tabs[i];
+		for(const j=0; j<tab.length; j++) out[ooff+j]=tab[j];
 		ooff+=tab.length;
 	}
 	return out;

@@ -3,9 +3,9 @@ import bin from './typr.bin';
 const OS2 = {
 	parseTab : function(data, offset, length)
 	{
-		var ver = bin.readUshort(data, offset); offset += 2;
+		const ver = bin.readUshort(data, offset); offset += 2;
 		
-		var obj = {};
+		const obj = {};
 		if     (ver==0) OS2.version0(data, offset, obj);
 		else if(ver==1) OS2.version1(data, offset, obj);
 		else if(ver==2 || ver==3 || ver==4) OS2.version2(data, offset, obj);
@@ -60,7 +60,7 @@ const OS2 = {
 
 	version2 : function(data, offset, obj)
 	{
-		var rU=bin.readUshort;
+		const rU=bin.readUshort;
 		offset = OS2.version1(data, offset, obj);
 		
 		obj["sxHeight"]     = bin.readShort(data, offset); offset += 2;
@@ -73,7 +73,7 @@ const OS2 = {
 
 	version5 : function(data, offset, obj)
 	{
-		var rU = bin.readUshort;
+		const rU = bin.readUshort;
 		offset = OS2.version2(data, offset, obj);
 
 		obj["usLowerOpticalPointSize"] = rU(data, offset); offset += 2;

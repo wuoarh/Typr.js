@@ -4,14 +4,14 @@ import glyf from './typr.glyf';
 const U = {
 	shape: function(font,str,ltr) {
 		
-		var getGlyphPosition = function(font, gls,i1,ltr)
+		const getGlyphPosition = function(font, gls,i1,ltr)
 		{
-			var g1=gls[i1],g2=gls[i1+1], kern=font["kern"];
+			const g1=gls[i1],g2=gls[i1+1], kern=font["kern"];
 			if(kern) {
-				var ind1 = kern.glyph1.indexOf(g1);
+				const ind1 = kern.glyph1.indexOf(g1);
 				if(ind1!=-1)
 				{
-					var ind2 = kern.rval[ind1].glyph2.indexOf(g2);
+					const ind2 = kern.rval[ind1].glyph2.indexOf(g2);
 					if(ind2!=-1) return [0,0,kern.rval[ind1].vals[ind2],0];
 				}
 			}
@@ -19,19 +19,18 @@ const U = {
 			return [0,0,0,0];
 		}
 		
-		
-		var gls = [];
-		for(var i=0; i<str.length; i++) {
-			var cc = str.codePointAt(i);  if(cc>0xffff) i++;
+		const gls = [];
+		for(const i=0; i<str.length; i++) {
+			const cc = str.codePointAt(i);  if(cc>0xffff) i++;
 			gls.push(U.codeToGlyph(font, cc));
 		}
-		var shape = [];
-		var x = 0, y = 0;
+		const shape = [];
+		const x = 0, y = 0;
 		
-		for(var i=0; i<gls.length; i++) {
-			var padj = getGlyphPosition(font, gls,i,ltr);
-			var gid = gls[i];
-			var ax=font["hmtx"].aWidth[gid]+padj[2];
+		for(const i=0; i<gls.length; i++) {
+			const padj = getGlyphPosition(font, gls,i,ltr);
+			const gid = gls[i];
+			const ax=font["hmtx"].aWidth[gid]+padj[2];
 			shape.push({"g":gid, "cl":i, "dx":0, "dy":0, "ax":ax, "ay":0});
 			x+=ax;
 		}
@@ -39,19 +38,19 @@ const U = {
 	},
 	
 	shapeToPath: function(font,shape,clr) {
-		var tpath = {cmds:[], crds:[]};
-		var x = 0, y = 0;
+		const tpath = {cmds:[], crds:[]};
+		const x = 0, y = 0;
 		
-		for(var i=0; i<shape.length; i++) {
-			var it = shape[i]
-			var path = U.glyphToPath(font, it["g"]), crds=path["crds"];
-			for(var j=0; j<crds.length; j+=2) {
+		for(const i=0; i<shape.length; i++) {
+			const it = shape[i]
+			const path = U.glyphToPath(font, it["g"]), crds=path["crds"];
+			for(const j=0; j<crds.length; j+=2) {
 				tpath.crds.push(crds[j  ] + x + it["dx"]);
 				tpath.crds.push(crds[j+1] + y + it["dy"]);
 			}
 			if(clr) tpath.cmds.push(clr);
-			for(var j=0; j<path["cmds"].length; j++) tpath.cmds.push(path["cmds"][j]);
-			var clen = tpath.cmds.length;
+			for(const j=0; j<path["cmds"].length; j++) tpath.cmds.push(path["cmds"][j]);
+			const clen = tpath.cmds.length;
 			if(clr) if(clen!=0 && tpath.cmds[clen-1]!="X") tpath.cmds.push("X");  // SVG fonts might contain "X". Then, nothing would stroke non-SVG glyphs.
 			
 			x += it["ax"];  y+= it["ay"];
@@ -61,36 +60,36 @@ const U = {
 
 	codeToGlyph: function(font, code)
 	{
-		var cmap = font["cmap"];
+		const cmap = font["cmap"];
 		//console.log(cmap);
 		// "p3e10" for NotoEmoji-Regular.ttf
-		var tind = -1, pps=["p3e10","p0e4","p3e1","p1e0","p0e3","p0e1"/*,"p3e3"*/];
-		for(var i=0; i<pps.length; i++) if(cmap.ids[pps[i]]!=null) {  tind=cmap.ids[pps[i]];  break;  }
+		const tind = -1, pps=["p3e10","p0e4","p3e1","p1e0","p0e3","p0e1"/*,"p3e3"*/];
+		for(const i=0; i<pps.length; i++) if(cmap.ids[pps[i]]!=null) {  tind=cmap.ids[pps[i]];  break;  }
 		if(tind==-1) throw "no familiar platform and encoding!";
 		
 		
 		// find the greatest index with a value <=v
-		var arrSearch = function(arr, k, v) {
-			var l=0, r=Math.floor(arr.length/k);
-			while(l+1!=r) {  var mid = l + ((r-l)>>>1);   if(arr[mid*k]<=v) l=mid;  else r=mid;  }
+		const arrSearch = function(arr, k, v) {
+			const l=0, r=Math.floor(arr.length/k);
+			while(l+1!=r) {  const mid = l + ((r-l)>>>1);   if(arr[mid*k]<=v) l=mid;  else r=mid;  }
 			return l*k;
 		}
 		
-		var tab = cmap.tables[tind], fmt=tab.format, gid = -1;  //console.log(fmt); throw "e";
+		const tab = cmap.tables[tind], fmt=tab.format, gid = -1;  //console.log(fmt); throw "e";
 		
 		if(fmt==0) {
 			if(code>=tab.map.length) gid = 0;
 			else gid = tab.map[code];
 		}
 		/*else if(fmt==2) {
-			var data=font["_data"], off = cmap.off+tab.off+6;
-			var shKey = bin.readUshort(data,off + 2*(code>>>8));
-			var shInd = off + 256*2 + shKey*8;
+			const data=font["_data"], off = cmap.off+tab.off+6;
+			const shKey = bin.readUshort(data,off + 2*(code>>>8));
+			const shInd = off + 256*2 + shKey*8;
 			
-			var firstCode = bin.readUshort(data,shInd);
-			var entryCount= bin.readUshort(data,shInd+2);
-			var idDelta   = bin.readShort (data,shInd+4);
-			var idRangeOffset = bin.readUshort(data,shInd+6);
+			const firstCode = bin.readUshort(data,shInd);
+			const entryCount= bin.readUshort(data,shInd+2);
+			const idDelta   = bin.readShort (data,shInd+4);
+			const idRangeOffset = bin.readUshort(data,shInd+6);
 			
 			if(firstCode<=code && code<=firstCode+entryCount) {
 				// not completely correct
@@ -104,7 +103,7 @@ const U = {
 			//throw "e";
 		}*/
 		else if(fmt==4) {
-			var sind = -1, ec = tab.endCount;
+			const sind = -1, ec = tab.endCount;
 			if(code>ec[ec.length-1]) sind=-1;
 			else {
 				// smallest index with code <= value
@@ -114,23 +113,23 @@ const U = {
 			if(sind==-1) gid = 0;
 			else if(code<tab.startCount[sind]) gid = 0;
 			else {
-				var gli = 0;
+				const gli = 0;
 				if(tab.idRangeOffset[sind]!=0) gli = tab.glyphIdArray[(code-tab.startCount[sind]) + (tab.idRangeOffset[sind]>>1) - (tab.idRangeOffset.length-sind)];
 				else                           gli = code + tab.idDelta[sind];
 				gid = (gli & 0xFFFF);
 			}
 		}
 		else if(fmt==6) {
-			var off = code-tab.firstCode, arr=tab.glyphIdArray;
+			const off = code-tab.firstCode, arr=tab.glyphIdArray;
 			if(off<0 || off>=arr.length) gid=0;
 			else gid = arr[off];
 		}
 		else if(fmt==12) {
-			var grp = tab.groups;  //console.log(grp);  throw "e";
+			const grp = tab.groups;  //console.log(grp);  throw "e";
 			
 			if(code>grp[grp.length-2]) gid = 0;
 			else {
-				var i = arrSearch(grp,3,code);
+				const i = arrSearch(grp,3,code);
 				if(grp[i]<=code && code<=grp[i+1]) {  gid = grp[i+2] + (code-grp[i]);  }
 				if(gid==-1) gid=0;
 			}
@@ -138,7 +137,7 @@ const U = {
 		else throw "unknown cmap table format "+tab.format;
 		
 		//*
-		var SVG = font["SVG "], loca = font["loca"];
+		const SVG = font["SVG "], loca = font["loca"];
 		// if the font claims to have a Glyph for a character, but the glyph is empty, and the character is not "white", it is a lie!
 		if(gid!=0 && font["CFF "]==null && (SVG==null || SVG.entries[gid]==null) && loca[gid]==loca[gid+1]  // loca not present in CFF or SVG fonts
 			&& [0x9,0xa,0xb,0xc,0xd,0x20,0x85,0xa0,0x1680,0x2028,0x2029,0x202f,0x3000,
@@ -150,20 +149,20 @@ const U = {
 
 	glyphToPath: function(font, gid)
 	{
-		var path = { cmds:[], crds:[] };
-		var SVG = font["SVG "], CFF = font["CFF "];
+		const path = { cmds:[], crds:[] };
+		const SVG = font["SVG "], CFF = font["CFF "];
 		if(SVG && SVG.entries[gid]) {
-			var p = SVG.entries[gid];  
+			const p = SVG.entries[gid];  
 			if(p!=null) {
 				if(typeof p == "string") {  p = U.SVG.toPath(p);  SVG.entries[gid]=p;  }
 				path=p;
 			}
 		}
 		else if(CFF) {
-			var pdct = CFF["Private"];
-			var state = {x:0,y:0,stack:[],nStems:0,haveWidth:false,width: pdct ? pdct["defaultWidthX"] : 0,open:false};
+			const pdct = CFF["Private"];
+			const state = {x:0,y:0,stack:[],nStems:0,haveWidth:false,width: pdct ? pdct["defaultWidthX"] : 0,open:false};
 			if(CFF["ROS"]) {
-				var gi = 0;
+				const gi = 0;
 				while(CFF["FDSelect"][gi+2]<=gid) gi+=2;
 				pdct = CFF["FDArray"][CFF["FDSelect"][gi+1]]["Private"];
 			}
@@ -175,7 +174,7 @@ const U = {
 
 	_drawGlyf: function(gid, font, path)
 	{
-		var gl = font["glyf"][gid];
+		const gl = font["glyf"][gid];
 		if(gl==null) gl = font["glyf"][gid] = glyf._parseGlyf(font, gid);
 		if(gl!=null){
 			if(gl.noc>-1) U._simpleGlyph(gl, path);
@@ -184,19 +183,19 @@ const U = {
 	},
 	_simpleGlyph: function(gl, p)
 	{
-		var P = U.P;
-		for(var c=0; c<gl.noc; c++) {
-			var i0 = (c==0) ? 0 : (gl.endPts[c-1] + 1);
-			var il = gl.endPts[c];
+		const P = U.P;
+		for(const c=0; c<gl.noc; c++) {
+			const i0 = (c==0) ? 0 : (gl.endPts[c-1] + 1);
+			const il = gl.endPts[c];
 			
-			for(var i=i0; i<=il; i++) {
-				var pr = (i==i0)?il:(i-1);
-				var nx = (i==il)?i0:(i+1);
-				var onCurve = gl.flags[i]&1;
-				var prOnCurve = gl.flags[pr]&1;
-				var nxOnCurve = gl.flags[nx]&1;
+			for(const i=i0; i<=il; i++) {
+				const pr = (i==i0)?il:(i-1);
+				const nx = (i==il)?i0:(i+1);
+				const onCurve = gl.flags[i]&1;
+				const prOnCurve = gl.flags[pr]&1;
+				const nxOnCurve = gl.flags[nx]&1;
 				
-				var x = gl.xs[i], y = gl.ys[i];
+				const x = gl.xs[i], y = gl.ys[i];
 				
 				if(i==i0) { 
 					if(onCurve) {
@@ -220,45 +219,45 @@ const U = {
 		}
 	},
 	_compoGlyph: function(gl, font, p) {
-		for(var j=0; j<gl.parts.length; j++) {
-			var path = { cmds:[], crds:[] };
-			var prt = gl.parts[j];
+		for(const j=0; j<gl.parts.length; j++) {
+			const path = { cmds:[], crds:[] };
+			const prt = gl.parts[j];
 			U._drawGlyf(prt.glyphIndex, font, path);
 			
-			var m = prt.m;
-			for(var i=0; i<path.crds.length; i+=2) {
-				var x = path.crds[i  ], y = path.crds[i+1];
+			const m = prt.m;
+			for(const i=0; i<path.crds.length; i+=2) {
+				const x = path.crds[i  ], y = path.crds[i+1];
 				p.crds.push(x*m.a + y*m.b + m.tx);
 				p.crds.push(x*m.c + y*m.d + m.ty);
 			}
-			for(var i=0; i<path.cmds.length; i++) p.cmds.push(path.cmds[i]);
+			for(const i=0; i<path.cmds.length; i++) p.cmds.push(path.cmds[i]);
 		}
 	},
 
 	pathToSVG: function(path, prec)
 	{
-		var cmds = path["cmds"], crds = path["crds"];
+		const cmds = path["cmds"], crds = path["crds"];
 		if(prec==null) prec = 5;
-		var out = [], co = 0, lmap = {"M":2,"L":2,"Q":4,"C":6};
-		for(var i=0; i<cmds.length; i++)
+		const out = [], co = 0, lmap = {"M":2,"L":2,"Q":4,"C":6};
+		for(const i=0; i<cmds.length; i++)
 		{
-			var cmd = cmds[i], cn = co+(lmap[cmd]?lmap[cmd]:0);  
+			const cmd = cmds[i], cn = co+(lmap[cmd]?lmap[cmd]:0);  
 			out.push(cmd);
-			while(co<cn) {  var c = crds[co++];  out.push(parseFloat(c.toFixed(prec))+(co==cn?"":" "));  }
+			while(co<cn) {  const c = crds[co++];  out.push(parseFloat(c.toFixed(prec))+(co==cn?"":" "));  }
 		}
 		return out.join("");
 	},
 	SVGToPath: function(d) {
-		var pth = {cmds:[], crds:[]};
+		const pth = {cmds:[], crds:[]};
 		U.SVG.svgToPath(d, pth);
 		return {"cmds":pth.cmds, "crds":pth.crds};
 	},
 
 	pathToContext: function(path, ctx) {
-		var c = 0, cmds = path["cmds"], crds = path["crds"];
+		const c = 0, cmds = path["cmds"], crds = path["crds"];
 		
-		for(var j=0; j<cmds.length; j++) {
-			var cmd = cmds[j];
+		for(const j=0; j<cmds.length; j++) {
+			const cmd = cmds[j];
 			if     (cmd=="M") {
 				ctx.moveTo(crds[c], crds[c+1]);
 				c+=2;
@@ -298,25 +297,25 @@ const U = {
 
 	_drawCFF: function(cmds, state, font, pdct, p)
 	{
-		var stack = state.stack;
-		var nStems = state.nStems, haveWidth=state.haveWidth, width=state.width, open=state.open;
-		var i=0;
-		var x=state.x, y=state.y, c1x=0, c1y=0, c2x=0, c2y=0, c3x=0, c3y=0, c4x=0, c4y=0, jpx=0, jpy=0;
-		var P = U.P;
+		const stack = state.stack;
+		const nStems = state.nStems, haveWidth=state.haveWidth, width=state.width, open=state.open;
+		const i=0;
+		const x=state.x, y=state.y, c1x=0, c1y=0, c2x=0, c2y=0, c3x=0, c3y=0, c4x=0, c4y=0, jpx=0, jpy=0;
+		const P = U.P;
 		
-		var nominalWidthX = pdct["nominalWidthX"];
-		var o = {val:0,size:0};
+		const nominalWidthX = pdct["nominalWidthX"];
+		const o = {val:0,size:0};
 		//console.log(cmds);
 		while(i<cmds.length)
 		{
 			CFF.getCharString(cmds, i, o);
-			var v = o.val;
+			const v = o.val;
 			i += o.size;
 				
 			if(false) {}
 			else if(v=="o1" || v=="o18")  //  hstem || hstemhm
 			{
-				var hasWidthArg;
+				const hasWidthArg;
 
 				// The number of stem operators on the stack is always even.
 				// If the value is uneven, that means a width is specified.
@@ -331,7 +330,7 @@ const U = {
 			}
 			else if(v=="o3" || v=="o23")  // vstem || vstemhm
 			{
-				var hasWidthArg;
+				const hasWidthArg;
 
 				// The number of stem operators on the stack is always even.
 				// If the value is uneven, that means a width is specified.
@@ -365,11 +364,11 @@ const U = {
 			}
 			else if(v=="o6" || v=="o7")  // hlineto || vlineto
 			{
-				var count = stack.length;
-				var isX = (v == "o6");
+				const count = stack.length;
+				const isX = (v == "o6");
 				
-				for(var j=0; j<count; j++) {
-					var sval = stack.shift();
+				for(const j=0; j<count; j++) {
+					const sval = stack.shift();
 					
 					if(isX) x += sval;  else  y += sval;
 					isX = !isX;
@@ -378,8 +377,8 @@ const U = {
 			}
 			else if(v=="o8" || v=="o24")	// rrcurveto || rcurveline
 			{
-				var count = stack.length;
-				var index = 0;
+				const count = stack.length;
+				const index = 0;
 				while(index+6 <= count) {
 					c1x = x + stack.shift();
 					c1y = y + stack.shift();
@@ -481,15 +480,15 @@ const U = {
 				if(stack.length==4) // seac = standard encoding accented character
 				{
 				
-					var asb = 0;
-					var adx = stack.shift();
-					var ady = stack.shift();
-					var bchar = stack.shift();
-					var achar = stack.shift();
+					const asb = 0;
+					const adx = stack.shift();
+					const ady = stack.shift();
+					const bchar = stack.shift();
+					const achar = stack.shift();
 				
 					
-					var bind = CFF.glyphBySE(font, bchar);
-					var aind = CFF.glyphBySE(font, achar);
+					const bind = CFF.glyphBySE(font, bchar);
+					const aind = CFF.glyphBySE(font, achar);
 					
 					//console.log(bchar, bind);
 					//console.log(achar, aind);
@@ -505,7 +504,7 @@ const U = {
 			}		
 			else if(v=="o19" || v=="o20") 
 			{ 
-				var hasWidthArg;
+				const hasWidthArg;
 
 				// The number of stem operators on the stack is always even.
 				// If the value is uneven, that means a width is specified.
@@ -596,11 +595,11 @@ const U = {
 			}
 			else if(v=="o10" || v=="o29")	// callsubr || callgsubr
 			{
-				var obj = (v=="o10" ? pdct : font);
+				const obj = (v=="o10" ? pdct : font);
 				if(stack.length==0) { console.log("error: empty stack");  }
 				else {
-					var ind = stack.pop();
-					var subr = obj["Subrs"][ ind + obj["Bias"] ];
+					const ind = stack.pop();
+					const subr = obj["Subrs"][ ind + obj["Bias"] ];
 					state.x=x; state.y=y; state.nStems=nStems; state.haveWidth=haveWidth; state.width=width;  state.open=open;
 					U._drawCFF(subr, state,font,pdct,p);
 					x=state.x; y=state.y; nStems=state.nStems; haveWidth=state.haveWidth; width=state.width;  open=state.open;
@@ -608,9 +607,9 @@ const U = {
 			}
 			else if(v=="o30" || v=="o31")   // vhcurveto || hvcurveto
 			{
-				var count, count1 = stack.length;
-				var index = 0;
-				var alternate = v == "o31";
+				const count, count1 = stack.length;
+				const index = 0;
+				const alternate = v == "o31";
 				
 				count  = count1 & ~2;
 				index += count1 - count;
@@ -653,31 +652,31 @@ const U = {
 
 
 	SVG: function() {
-		var M = {
+		const M = {
 			getScale : function(m) {  return Math.sqrt(Math.abs(m[0]*m[3]-m[1]*m[2]));  },
 			translate: function(m,x,y) {  M.concat(m, [1,0,0,1,x,y]);  },
 			rotate   : function(m,a  ) {  M.concat(m, [Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a),0,0]);  },
 			scale    : function(m,x,y) {  M.concat(m, [x,0,0,y,0,0]);  },
 			concat   : function(m,w  ) {  
-				var a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5];
+				const a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5];
 				m[0] = (a *w[0])+(b *w[2]);       m[1] = (a *w[1])+(b *w[3]);
 				m[2] = (c *w[0])+(d *w[2]);       m[3] = (c *w[1])+(d *w[3]);
 				m[4] = (tx*w[0])+(ty*w[2])+w[4];  m[5] = (tx*w[1])+(ty*w[3])+w[5]; 
 			},
 			invert   : function(m    ) {  
-				var a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5], adbc=a*d-b*c;
+				const a=m[0],b=m[1],c=m[2],d=m[3],tx=m[4],ty=m[5], adbc=a*d-b*c;
 				m[0] = d/adbc;  m[1] = -b/adbc;  m[2] =-c/adbc;  m[3] =  a/adbc;
 				m[4] = (c*ty - d*tx)/adbc;  m[5] = (b*tx - a*ty)/adbc;
 			},
-			multPoint: function(m, p ) {  var x=p[0],y=p[1];  return [x*m[0]+y*m[2]+m[4],   x*m[1]+y*m[3]+m[5]];  },
-			multArray: function(m, a ) {  for(var i=0; i<a.length; i+=2) {  var x=a[i],y=a[i+1];  a[i]=x*m[0]+y*m[2]+m[4];  a[i+1]=x*m[1]+y*m[3]+m[5];  }  }
+			multPoint: function(m, p ) {  const x=p[0],y=p[1];  return [x*m[0]+y*m[2]+m[4],   x*m[1]+y*m[3]+m[5]];  },
+			multArray: function(m, a ) {  for(const i=0; i<a.length; i+=2) {  const x=a[i],y=a[i+1];  a[i]=x*m[0]+y*m[2]+m[4];  a[i+1]=x*m[1]+y*m[3]+m[5];  }  }
 		}
 		
 		function _bracketSplit(str, lbr, rbr) {
-			var out = [], pos=0, ci = 0, lvl = 0;
+			const out = [], pos=0, ci = 0, lvl = 0;
 			while(true) {  //throw "e";
-				var li = str.indexOf(lbr, ci);
-				var ri = str.indexOf(rbr, ci);
+				const li = str.indexOf(lbr, ci);
+				const ri = str.indexOf(rbr, ci);
 				if(li==-1 && ri==-1) break;
 				if(ri==-1 || (li!=-1 && li<ri)) {
 					if(lvl==0) {  out.push(str.slice(pos,li).trim());  pos=li+1;  }
@@ -693,12 +692,12 @@ const U = {
 		}
 		//"cssMap": 
 		function cssMap(str) {
-			var pts = _bracketSplit(str, "{", "}");
-			var css = {};
-			for(var i=0; i<pts.length; i+=2) {
-				var cn = pts[i].split(",");
-				for(var j=0; j<cn.length; j++) {
-					var cnj = cn[j].trim();  if(css[cnj]==null) css[cnj]="";
+			const pts = _bracketSplit(str, "{", "}");
+			const css = {};
+			for(const i=0; i<pts.length; i+=2) {
+				const cn = pts[i].split(",");
+				for(const j=0; j<cn.length; j++) {
+					const cnj = cn[j].trim();  if(css[cnj]==null) css[cnj]="";
 					css[cnj] += pts[i+1];
 				}
 			}
@@ -706,18 +705,18 @@ const U = {
 		}
 		//"readTrnf" 
 		function readTrnf(trna) {
-			var pts = _bracketSplit(trna, "(",")");
-			var m = [1,0,0,1,0,0];
-			for(var i=0; i<pts.length; i+=2) {  var om=m;  m=_readTrnsAttr(pts[i], pts[i+1]);  M.concat(m,om);  }
+			const pts = _bracketSplit(trna, "(",")");
+			const m = [1,0,0,1,0,0];
+			for(const i=0; i<pts.length; i+=2) {  const om=m;  m=_readTrnsAttr(pts[i], pts[i+1]);  M.concat(m,om);  }
 			return m;
 		}
 		
 		function _readTrnsAttr(fnc, vls) {
 			//console.log(vls);
 			//vls = vls.replace(/\-/g, " -").trim();
-			var m = [1,0,0,1,0,0], gotSep = true;
-			for(var i=0; i<vls.length; i++) {	// matrix(.99915 0 0 .99915.418.552)   matrix(1 0 0-.9474-22.535 271.03)
-				var ch = vls.charAt(i);
+			const m = [1,0,0,1,0,0], gotSep = true;
+			for(const i=0; i<vls.length; i++) {	// matrix(.99915 0 0 .99915.418.552)   matrix(1 0 0-.9474-22.535 271.03)
+				const ch = vls.charAt(i);
 				if(ch=="," || ch==" ") gotSep = true;
 				else if(ch==".") {
 					if(!gotSep) {  vls = vls.slice(0,i) + ","+vls.slice(i);  i++;  }     gotSep = false;
@@ -729,7 +728,7 @@ const U = {
 			if(false) {}
 			else if(fnc=="translate") {  if(vls.length==1) M.translate(m,vls[0],     0);  else M.translate(m,vls[0],vls[1]);  }
 			else if(fnc=="scale"    ) {  if(vls.length==1) M.scale    (m,vls[0],vls[0]);  else M.scale    (m,vls[0],vls[1]);  }
-			else if(fnc=="rotate"   ) {  var tx=0,ty=0;  if(vls.length!=1) { tx=vls[1];  ty=vls[2];  }  M.translate(m,-tx,-ty);  M.rotate(m,-Math.PI*vls[0]/180);  M.translate(m,tx,ty);  }
+			else if(fnc=="rotate"   ) {  const tx=0,ty=0;  if(vls.length!=1) { tx=vls[1];  ty=vls[2];  }  M.translate(m,-tx,-ty);  M.rotate(m,-Math.PI*vls[0]/180);  M.translate(m,tx,ty);  }
 			else if(fnc=="matrix"   ) m = vls;
 			else console.log("unknown transform: ", fnc);
 			return m;
@@ -737,19 +736,19 @@ const U = {
 		
 		function toPath(str)
 		{
-			var pth = {cmds:[], crds:[]};
+			const pth = {cmds:[], crds:[]};
 			if(str==null) return pth;
 			
-			var prsr = new DOMParser();
-			var doc = prsr["parseFromString"](str,"image/svg+xml");
+			const prsr = new DOMParser();
+			const doc = prsr["parseFromString"](str,"image/svg+xml");
 			
-			//var svg = doc.firstChild;  while(svg.tagName!="svg") svg = svg.nextSibling;
-			var svg = doc.getElementsByTagName("svg")[0];
-			var vb = svg.getAttribute("viewBox");
+			//const svg = doc.firstChild;  while(svg.tagName!="svg") svg = svg.nextSibling;
+			const svg = doc.getElementsByTagName("svg")[0];
+			const vb = svg.getAttribute("viewBox");
 			if(vb) vb = vb.trim().split(" ").map(parseFloat);  else   vb = [0,0,1000,1000];
 			_toPath(svg.children, pth);
-			for(var i=0; i<pth.crds.length; i+=2) {
-				var x = pth.crds[i], y = pth.crds[i+1];
+			for(const i=0; i<pth.crds.length; i+=2) {
+				const x = pth.crds[i], y = pth.crds[i+1];
 				x -= vb[0];
 				y -= vb[1];
 				y = -y;
@@ -760,15 +759,15 @@ const U = {
 		}
 
 		function _toPath(nds, pth, fill) {
-			for(var ni=0; ni<nds.length; ni++) {
-				var nd = nds[ni], tn = nd.tagName;
-				var cfl = nd.getAttribute("fill");  if(cfl==null) cfl = fill;
+			for(const ni=0; ni<nds.length; ni++) {
+				const nd = nds[ni], tn = nd.tagName;
+				const cfl = nd.getAttribute("fill");  if(cfl==null) cfl = fill;
 				if(tn=="g") {
-					var tp = {crds:[], cmds:[]};
+					const tp = {crds:[], cmds:[]};
 					_toPath(nd.children, tp, cfl);
-					var trf = nd.getAttribute("transform");
+					const trf = nd.getAttribute("transform");
 					if(trf) {
-						var m = readTrnf(trf);
+						const m = readTrnf(trf);
 						M.multArray(m, tp.crds);
 					}
 					pth.crds=pth.crds.concat(tp.crds);
@@ -776,12 +775,12 @@ const U = {
 				}
 				else if(tn=="path" || tn=="circle" || tn=="ellipse") {
 					pth.cmds.push(cfl?cfl:"#000000");
-					var d;
+					const d;
 					if(tn=="path") d = nd.getAttribute("d");  //console.log(d);
 					if(tn=="circle" || tn=="ellipse") {
-						var vls=[0,0,0,0], nms=["cx","cy","rx","ry","r"];
-						for(var i=0; i<5; i++) {  var V=nd.getAttribute(nms[i]);  if(V) {  V=parseFloat(V);  if(i<4) vls[i]=V;  else vls[2]=vls[3]=V;  }  }
-						var cx=vls[0],cy=vls[1],rx=vls[2],ry=vls[3];
+						const vls=[0,0,0,0], nms=["cx","cy","rx","ry","r"];
+						for(const i=0; i<5; i++) {  const V=nd.getAttribute(nms[i]);  if(V) {  V=parseFloat(V);  if(i<4) vls[i]=V;  else vls[2]=vls[3]=V;  }  }
+						const cx=vls[0],cy=vls[1],rx=vls[2],ry=vls[3];
 						d = ["M",cx-rx,cy,"a",rx,ry,0,1,0,rx*2,0,"a",rx,ry,0,1,0,-rx*2,0].join(" ");
 					}
 					svgToPath(d, pth);  pth.cmds.push("X");
@@ -792,10 +791,10 @@ const U = {
 		}
 
 		function _tokens(d) {
-			var ts = [], off = 0, rn=false, cn="", pc="";  // reading number, current number, prev char
+			const ts = [], off = 0, rn=false, cn="", pc="";  // reading number, current number, prev char
 			while(off<d.length){
-				var cc=d.charCodeAt(off), ch = d.charAt(off);  off++;
-				var isNum = (48<=cc && cc<=57) || ch=="." || ch=="-" || ch=="e" || ch=="E";
+				const cc=d.charCodeAt(off), ch = d.charAt(off);  off++;
+				const isNum = (48<=cc && cc<=57) || ch=="." || ch=="-" || ch=="e" || ch=="E";
 				
 				if(rn) {
 					if( (ch=="-" && pc!="e") || (ch=="." && cn.indexOf(".")!=-1)) {  ts.push(parseFloat(cn));  cn=ch;  }
@@ -813,30 +812,30 @@ const U = {
 		}
 		
 		function _reps(ts, off, ps) {
-			var i = off;
+			const i = off;
 			while(i<ts.length) {  if((typeof ts[i]) == "string") break;  i+=ps;  }
 			return (i-off)/ps;
 		}
 
 		function svgToPath(d, pth) {	
-			var ts = _tokens(d);
-			var i = 0, x = 0, y = 0, ox = 0, oy = 0, oldo=pth.crds.length;
-			var pc = {"M":2,"L":2,"H":1,"V":1,   "T":2,"S":4, "A":7,   "Q":4, "C":6};
-			var cmds = pth.cmds, crds = pth.crds;
+			const ts = _tokens(d);
+			const i = 0, x = 0, y = 0, ox = 0, oy = 0, oldo=pth.crds.length;
+			const pc = {"M":2,"L":2,"H":1,"V":1,   "T":2,"S":4, "A":7,   "Q":4, "C":6};
+			const cmds = pth.cmds, crds = pth.crds;
 			
 			while(i<ts.length) {
-				var cmd = ts[i];  i++;
-				var cmu = cmd.toUpperCase();
+				const cmd = ts[i];  i++;
+				const cmu = cmd.toUpperCase();
 				
 				if(cmu=="Z") {  cmds.push("Z");  x=ox;  y=oy;  }
 				else {
-					var ps = pc[cmu], reps = _reps(ts, i, ps);
+					const ps = pc[cmu], reps = _reps(ts, i, ps);
 				
-					for(var j=0; j<reps; j++) {
+					for(const j=0; j<reps; j++) {
 						// If a moveto is followed by multiple pairs of coordinates, the subsequent pairs are treated as implicit lineto commands.
 						if(j==1 && cmu=="M") {  cmd=(cmd==cmu)?"L":"l";  cmu="L";  }
 						
-						var xi = 0, yi = 0;   if(cmd!=cmu) {  xi=x;  yi=y;  }
+						const xi = 0, yi = 0;   if(cmd!=cmu) {  xi=x;  yi=y;  }
 						
 						if(false) {}
 						else if(cmu=="M") {  x = xi+ts[i++];  y = yi+ts[i++];  cmds.push("M");  crds.push(x,y);  ox=x;  oy=y; }
@@ -844,86 +843,86 @@ const U = {
 						else if(cmu=="H") {  x = xi+ts[i++];                   cmds.push("L");  crds.push(x,y);  }
 						else if(cmu=="V") {  y = yi+ts[i++];                   cmds.push("L");  crds.push(x,y);  }
 						else if(cmu=="Q") {
-							var x1=xi+ts[i++], y1=yi+ts[i++], x2=xi+ts[i++], y2=yi+ts[i++];
+							const x1=xi+ts[i++], y1=yi+ts[i++], x2=xi+ts[i++], y2=yi+ts[i++];
 							cmds.push("Q");  crds.push(x1,y1,x2,y2);  x=x2;  y=y2;
 						}
 						else if(cmu=="T") {
-							var co = Math.max(crds.length-2, oldo);
-							var x1 = x+x-crds[co], y1 = y+y-crds[co+1];
-							var x2=xi+ts[i++], y2=yi+ts[i++];  
+							const co = Math.max(crds.length-2, oldo);
+							const x1 = x+x-crds[co], y1 = y+y-crds[co+1];
+							const x2=xi+ts[i++], y2=yi+ts[i++];  
 							cmds.push("Q");  crds.push(x1,y1,x2,y2);  x=x2;  y=y2;
 						}
 						else if(cmu=="C") {
-							var x1=xi+ts[i++], y1=yi+ts[i++], x2=xi+ts[i++], y2=yi+ts[i++], x3=xi+ts[i++], y3=yi+ts[i++];
+							const x1=xi+ts[i++], y1=yi+ts[i++], x2=xi+ts[i++], y2=yi+ts[i++], x3=xi+ts[i++], y3=yi+ts[i++];
 							cmds.push("C");  crds.push(x1,y1,x2,y2,x3,y3);  x=x3;  y=y3;
 						}
 						else if(cmu=="S") {
-							var co = Math.max(crds.length-(cmds[cmds.length-1]=="C"?4:2), oldo);
-							var x1 = x+x-crds[co], y1 = y+y-crds[co+1];
-							var x2=xi+ts[i++], y2=yi+ts[i++], x3=xi+ts[i++], y3=yi+ts[i++];  
+							const co = Math.max(crds.length-(cmds[cmds.length-1]=="C"?4:2), oldo);
+							const x1 = x+x-crds[co], y1 = y+y-crds[co+1];
+							const x2=xi+ts[i++], y2=yi+ts[i++], x3=xi+ts[i++], y3=yi+ts[i++];  
 							cmds.push("C");  crds.push(x1,y1,x2,y2,x3,y3);  x=x3;  y=y3;
 						}
 						else if(cmu=="A") {  // convert SVG Arc to four cubic bézier segments "C"
-							var x1 = x, y1 = y;
-							var rx = ts[i++], ry = ts[i++];
-							var phi = ts[i++]*(Math.PI/180), fA = ts[i++], fS = ts[i++];
-							var x2 = xi+ts[i++], y2 = yi+ts[i++];
+							const x1 = x, y1 = y;
+							const rx = ts[i++], ry = ts[i++];
+							const phi = ts[i++]*(Math.PI/180), fA = ts[i++], fS = ts[i++];
+							const x2 = xi+ts[i++], y2 = yi+ts[i++];
 							if(x2==x && y2==y && rx==0 && ry==0) continue;
 							
-							var hdx = (x1-x2)/2, hdy = (y1-y2)/2;
-							var cosP = Math.cos(phi), sinP = Math.sin(phi);
-							var x1A =  cosP * hdx + sinP * hdy;
-							var y1A = -sinP * hdx + cosP * hdy;
+							const hdx = (x1-x2)/2, hdy = (y1-y2)/2;
+							const cosP = Math.cos(phi), sinP = Math.sin(phi);
+							const x1A =  cosP * hdx + sinP * hdy;
+							const y1A = -sinP * hdx + cosP * hdy;
 							
-							var rxS = rx*rx, ryS = ry*ry;
-							var x1AS  = x1A*x1A, y1AS = y1A*y1A;
-							var frc = (rxS*ryS  - rxS*y1AS - ryS*x1AS)  /  (rxS*y1AS + ryS*x1AS);
-							var coef = (fA!=fS ? 1 : -1) * Math.sqrt(  Math.max(frc,0)  );
-							var cxA =  coef * (rx * y1A) / ry;
-							var cyA = -coef * (ry * x1A) / rx;
+							const rxS = rx*rx, ryS = ry*ry;
+							const x1AS  = x1A*x1A, y1AS = y1A*y1A;
+							const frc = (rxS*ryS  - rxS*y1AS - ryS*x1AS)  /  (rxS*y1AS + ryS*x1AS);
+							const coef = (fA!=fS ? 1 : -1) * Math.sqrt(  Math.max(frc,0)  );
+							const cxA =  coef * (rx * y1A) / ry;
+							const cyA = -coef * (ry * x1A) / rx;
 							
-							var cx = cosP*cxA - sinP*cyA + (x1+x2)/2;
-							var cy = sinP*cxA + cosP*cyA + (y1+y2)/2;
+							const cx = cosP*cxA - sinP*cyA + (x1+x2)/2;
+							const cy = sinP*cxA + cosP*cyA + (y1+y2)/2;
 							
-							var angl = function(ux,uy,vx,vy) {  var lU = Math.sqrt(ux*ux+uy*uy), lV = Math.sqrt(vx*vx+vy*vy);
-									var num = (ux*vx+uy*vy) / (lU*lV);  //console.log(num, Math.acos(num));
+							const angl = function(ux,uy,vx,vy) {  const lU = Math.sqrt(ux*ux+uy*uy), lV = Math.sqrt(vx*vx+vy*vy);
+									const num = (ux*vx+uy*vy) / (lU*lV);  //console.log(num, Math.acos(num));
 									return (ux*vy-uy*vx>=0?1:-1) * Math.acos( Math.max(-1, Math.min(1, num)) );  }
 							
-							var vX = (x1A-cxA)/rx, vY = (y1A-cyA)/ry;
-							var theta1 = angl( 1, 0, vX,vY);
-							var dtheta = angl(vX,vY, (-x1A-cxA)/rx, (-y1A-cyA)/ry);
+							const vX = (x1A-cxA)/rx, vY = (y1A-cyA)/ry;
+							const theta1 = angl( 1, 0, vX,vY);
+							const dtheta = angl(vX,vY, (-x1A-cxA)/rx, (-y1A-cyA)/ry);
 							dtheta = dtheta % (2*Math.PI);
 							
-							var arc = function(gst,x,y,r,a0,a1, neg) {
-								var rotate = function(m, a) {  var si=Math.sin(a), co=Math.cos(a);
-									var a=m[0],b=m[1],c=m[2],d=m[3];
+							const arc = function(gst,x,y,r,a0,a1, neg) {
+								const rotate = function(m, a) {  const si=Math.sin(a), co=Math.cos(a);
+									const a=m[0],b=m[1],c=m[2],d=m[3];
 									m[0] = (a *co)+(b *si);   m[1] = (-a *si)+(b *co);
 									m[2] = (c *co)+(d *si);   m[3] = (-c *si)+(d *co);
 								}
-								var multArr= function(m,a) {
-									for(var j=0; j<a.length; j+=2) {
-										var x=a[j], y=a[j+1];
+								const multArr= function(m,a) {
+									for(const j=0; j<a.length; j+=2) {
+										const x=a[j], y=a[j+1];
 										a[j  ] = m[0]*x + m[2]*y + m[4];
 										a[j+1] = m[1]*x + m[3]*y + m[5];
 									}
 								}
-								var concatA= function(a,b) {  for(var j=0; j<b.length; j++) a.push(b[j]);  }
-								var concatP= function(p,r) {  concatA(p.cmds,r.cmds);  concatA(p.crds,r.crds);  }
+								const concatA= function(a,b) {  for(const j=0; j<b.length; j++) a.push(b[j]);  }
+								const concatP= function(p,r) {  concatA(p.cmds,r.cmds);  concatA(p.crds,r.crds);  }
 								// circle from a0 counter-clock-wise to a1
 								if(neg) while(a1>a0) a1-=2*Math.PI;
 								else    while(a1<a0) a1+=2*Math.PI;
-								var th = (a1-a0)/4;
+								const th = (a1-a0)/4;
 								
-								var x0 = Math.cos(th/2), y0 = -Math.sin(th/2);
-								var x1 = (4-x0)/3, y1 = y0==0 ? y0 : (1-x0)*(3-x0)/(3*y0);
-								var x2 = x1, y2 = -y1;
-								var x3 = x0, y3 = -y0;
+								const x0 = Math.cos(th/2), y0 = -Math.sin(th/2);
+								const x1 = (4-x0)/3, y1 = y0==0 ? y0 : (1-x0)*(3-x0)/(3*y0);
+								const x2 = x1, y2 = -y1;
+								const x3 = x0, y3 = -y0;
 								
-								var ps = [x1,y1,x2,y2,x3,y3];
+								const ps = [x1,y1,x2,y2,x3,y3];
 								
-								var pth = {cmds:["C","C","C","C"], crds:ps.slice(0)};
-								var rot = [1,0,0,1,0,0];  rotate(rot,-th);
-								for(var j=0; j<3; j++) {  multArr(rot,ps);  concatA(pth.crds,ps);  }
+								const pth = {cmds:["C","C","C","C"], crds:ps.slice(0)};
+								const rot = [1,0,0,1,0,0];  rotate(rot,-th);
+								for(const j=0; j<3; j++) {  multArr(rot,ps);  concatA(pth.crds,ps);  }
 								
 								rotate(rot, -a0+th/2);  rot[0]*=r;  rot[1]*=r;  rot[2]*=r;  rot[3]*=r;  rot[4]=x;  rot[5]=y; 
 								multArr(rot, pth.crds);
@@ -931,7 +930,7 @@ const U = {
 								concatP(gst.pth, pth);
 							}
 							
-							var gst = {pth:pth, ctm:[rx*cosP,rx*sinP,-ry*sinP,ry*cosP,cx,cy]};
+							const gst = {pth:pth, ctm:[rx*cosP,rx*sinP,-ry*sinP,ry*cosP,cx,cy]};
 							arc(gst, 0,0, 1, theta1, theta1+dtheta, fS==0);
 							x=x2;  y=y2;
 						}
@@ -944,37 +943,37 @@ const U = {
 	}(),
 
 	initHB: function(hurl,resp) {
-		var codeLength = function(code) {
-			var len=0;
+		const codeLength = function(code) {
+			const len=0;
 			if     ((code&(0xffffffff-(1<< 7)+1))==0) {  len=1;  }
 			else if((code&(0xffffffff-(1<<11)+1))==0) {  len=2;  }
 			else if((code&(0xffffffff-(1<<16)+1))==0) {  len=3;  }
 			else if((code&(0xffffffff-(1<<21)+1))==0) {  len=4;  }
 			return len;
 		};
-		var te = new window["TextEncoder"]("utf8");
+		const te = new window["TextEncoder"]("utf8");
 	
 		fetch(hurl)
 			.then(function (x  ) { return x["arrayBuffer"](); })
 			.then(function (ab ) { return WebAssembly["instantiate"](ab); })
 			.then(function (res) {
 				console.log("HB ready");
-				var exp = res["instance"]["exports"], mem=exp["memory"];
+				const exp = res["instance"]["exports"], mem=exp["memory"];
 				mem["grow"](700); // each page is 64kb in size
-				var heapu8  = new Uint8Array (mem.buffer);
-				var u32 = new Uint32Array(mem.buffer);
-				var i32 = new Int32Array (mem.buffer);
-				var __lastFnt, blob,blobPtr,face,font;
+				const heapu8  = new Uint8Array (mem.buffer);
+				const u32 = new Uint32Array(mem.buffer);
+				const i32 = new Int32Array (mem.buffer);
+				const __lastFnt, blob,blobPtr,face,font;
 				
 				U.shapeHB = (function () {
 					
-					var toJson = function (ptr) {
-						var length = exp["hb_buffer_get_length"](ptr);
-						var result = [];
-						var iPtr32 = exp["hb_buffer_get_glyph_infos"](ptr, 0) >>>2;
-						var pPtr32 = exp["hb_buffer_get_glyph_positions"](ptr, 0) >>>2;
-						for(var i=0; i<length; ++i) {
-							var a=iPtr32+i*5, b=pPtr32+i*5;
+					const toJson = function (ptr) {
+						const length = exp["hb_buffer_get_length"](ptr);
+						const result = [];
+						const iPtr32 = exp["hb_buffer_get_glyph_infos"](ptr, 0) >>>2;
+						const pPtr32 = exp["hb_buffer_get_glyph_positions"](ptr, 0) >>>2;
+						for(const i=0; i<length; ++i) {
+							const a=iPtr32+i*5, b=pPtr32+i*5;
 						result.push({
 							"g" : u32[a + 0],
 							"cl": u32[a + 2],
@@ -987,7 +986,7 @@ const U = {
 						return result;
 					}
 					return function (fnt, str, ltr) {
-						var fdata = fnt["_data"], fn = fnt["name"]["postScriptName"];
+						const fdata = fnt["_data"], fn = fnt["name"]["postScriptName"];
 						
 						if(__lastFnt!=fn) {
 							if(blob!=null) {  
@@ -1003,24 +1002,24 @@ const U = {
 							__lastFnt = fn;
 						}
 						
-						var buffer = exp["hb_buffer_create"]();
-						var bytes = te["encode"](str);
-						var len=bytes.length, strp = exp["malloc"](len);  heapu8.set(bytes, strp);
+						const buffer = exp["hb_buffer_create"]();
+						const bytes = te["encode"](str);
+						const len=bytes.length, strp = exp["malloc"](len);  heapu8.set(bytes, strp);
 						exp["hb_buffer_add_utf8"](buffer, strp, len, 0, len);
 						exp["free"](strp);
 						
 						exp["hb_buffer_set_direction"](buffer,ltr?4:5);
 						exp["hb_buffer_guess_segment_properties"](buffer);
 						exp["hb_shape"](font, buffer, 0, 0);
-						var json = toJson(buffer)//buffer["json"]();
+						const json = toJson(buffer)//buffer["json"]();
 						exp["hb_buffer_destroy"](buffer);
 						
-						var arr = json.slice(0);  if(!ltr) arr.reverse();
-						var ci=0, bi=0;  // character index, binary index
-						for(var i=1; i<arr.length; i++) {
-							var gl = arr[i], cl=gl["cl"];
+						const arr = json.slice(0);  if(!ltr) arr.reverse();
+						const ci=0, bi=0;  // character index, binary index
+						for(const i=1; i<arr.length; i++) {
+							const gl = arr[i], cl=gl["cl"];
 							while(true) {
-								var cpt = str.codePointAt(ci), cln = codeLength(cpt);
+								const cpt = str.codePointAt(ci), cln = codeLength(cpt);
 								if(bi+cln <=cl) {  bi+=cln;  ci += cpt<=0xffff ? 1 : 2;  }
 								else break;
 							}

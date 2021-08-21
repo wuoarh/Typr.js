@@ -3,7 +3,7 @@ import bin from './typr.bin';
 const post = {
 	parseTab : function(data, offset, length)
 	{
-		var obj = {};
+		const obj = {};
 		
 		obj["version"]            = bin.readFixed(data, offset);  offset+=4;
 		obj["italicAngle"]        = bin.readFixed(data, offset);  offset+=4;

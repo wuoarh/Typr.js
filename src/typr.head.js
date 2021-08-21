@@ -3,12 +3,12 @@ import bin from './typr.bin';
 const head = {
 	parseTab : function(data, offset, length)
 	{
-		var obj = {};
-		var tableVersion = bin.readFixed(data, offset);  offset += 4;
+		const obj = {};
+		const tableVersion = bin.readFixed(data, offset);  offset += 4;
 		
 		obj["fontRevision"] = bin.readFixed(data, offset);  offset += 4;
-		var checkSumAdjustment = bin.readUint(data, offset);  offset += 4;
-		var magicNumber = bin.readUint(data, offset);  offset += 4;
+		const checkSumAdjustment = bin.readUint(data, offset);  offset += 4;
+		const magicNumber = bin.readUint(data, offset);  offset += 4;
 		obj["flags"] = bin.readUshort(data, offset);  offset += 2;
 		obj["unitsPerEm"] = bin.readUshort(data, offset);  offset += 2;
 		obj["created"]  = bin.readUint64(data, offset);  offset += 8;

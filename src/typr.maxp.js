@@ -5,11 +5,11 @@ const maxp = {
 	{
 		//console.log(data.length, offset, length);
 		
-		var rU=bin.readUshort;
-		var obj = {};
+		const rU=bin.readUshort;
+		const obj = {};
 		
 		// both versions 0.5 and 1.0
-		var ver = bin.readUint(data, offset); offset += 4;
+		const ver = bin.readUint(data, offset); offset += 4;
 		
 		obj["numGlyphs"] = rU(data, offset);  offset += 2;
 		
