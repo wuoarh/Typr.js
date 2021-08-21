@@ -1,7 +1,8 @@
+import CFF from './typr.cff';
+import glyf from './typr.glyf';
 
-
-Typr["U"] = {
-	"shape" : function(font,str,ltr) {
+const U = {
+	shape: function(font,str,ltr) {
 		
 		var getGlyphPosition = function(font, gls,i1,ltr)
 		{
@@ -22,7 +23,7 @@ Typr["U"] = {
 		var gls = [];
 		for(var i=0; i<str.length; i++) {
 			var cc = str.codePointAt(i);  if(cc>0xffff) i++;
-			gls.push(Typr["U"]["codeToGlyph"](font, cc));
+			gls.push(U.codeToGlyph(font, cc));
 		}
 		var shape = [];
 		var x = 0, y = 0;
@@ -37,13 +38,13 @@ Typr["U"] = {
 		return shape;
 	},
 	
-	"shapeToPath" : function(font,shape,clr) {
+	shapeToPath: function(font,shape,clr) {
 		var tpath = {cmds:[], crds:[]};
 		var x = 0, y = 0;
 		
 		for(var i=0; i<shape.length; i++) {
 			var it = shape[i]
-			var path = Typr["U"]["glyphToPath"](font, it["g"]), crds=path["crds"];
+			var path = U.glyphToPath(font, it["g"]), crds=path["crds"];
 			for(var j=0; j<crds.length; j+=2) {
 				tpath.crds.push(crds[j  ] + x + it["dx"]);
 				tpath.crds.push(crds[j+1] + y + it["dy"]);
@@ -58,7 +59,7 @@ Typr["U"] = {
 		return {"cmds":tpath.cmds, "crds":tpath.crds};
 	},
 
-	"codeToGlyph" : function(font, code)
+	codeToGlyph: function(font, code)
 	{
 		var cmap = font["cmap"];
 		//console.log(cmap);
@@ -82,7 +83,7 @@ Typr["U"] = {
 			else gid = tab.map[code];
 		}
 		/*else if(fmt==2) {
-			var data=font["_data"], off = cmap.off+tab.off+6, bin=Typr["B"];
+			var data=font["_data"], off = cmap.off+tab.off+6;
 			var shKey = bin.readUshort(data,off + 2*(code>>>8));
 			var shInd = off + 256*2 + shKey*8;
 			
@@ -147,15 +148,14 @@ Typr["U"] = {
 		return gid;
 	},
 
-	"glyphToPath" : function(font, gid)
+	glyphToPath: function(font, gid)
 	{
 		var path = { cmds:[], crds:[] };
 		var SVG = font["SVG "], CFF = font["CFF "];
-		var U = Typr["U"];
 		if(SVG && SVG.entries[gid]) {
 			var p = SVG.entries[gid];  
 			if(p!=null) {
-				if(typeof p == "string") {  p = U["SVG"].toPath(p);  SVG.entries[gid]=p;  }
+				if(typeof p == "string") {  p = U.SVG.toPath(p);  SVG.entries[gid]=p;  }
 				path=p;
 			}
 		}
@@ -167,24 +167,24 @@ Typr["U"] = {
 				while(CFF["FDSelect"][gi+2]<=gid) gi+=2;
 				pdct = CFF["FDArray"][CFF["FDSelect"][gi+1]]["Private"];
 			}
-			U["_drawCFF"](CFF["CharStrings"][gid], state, CFF, pdct, path);
+			U._drawCFF(CFF["CharStrings"][gid], state, CFF, pdct, path);
 		}
-		else if(font["glyf"]) {  U["_drawGlyf"](gid, font, path);  }
+		else if(font["glyf"]) {  U._drawGlyf(gid, font, path);  }
 		return {"cmds":path.cmds, "crds":path.crds};
 	},
 
-	"_drawGlyf" : function(gid, font, path)
+	_drawGlyf: function(gid, font, path)
 	{
 		var gl = font["glyf"][gid];
-		if(gl==null) gl = font["glyf"][gid] = Typr["T"].glyf._parseGlyf(font, gid);
+		if(gl==null) gl = font["glyf"][gid] = glyf._parseGlyf(font, gid);
 		if(gl!=null){
-			if(gl.noc>-1) Typr["U"]["_simpleGlyph"](gl, path);
-			else          Typr["U"]["_compoGlyph"] (gl, font, path);
+			if(gl.noc>-1) U._simpleGlyph(gl, path);
+			else          U._compoGlyph (gl, font, path);
 		}
 	},
-	"_simpleGlyph" : function(gl, p)
+	_simpleGlyph: function(gl, p)
 	{
-		var P = Typr["U"]["P"];
+		var P = U.P;
 		for(var c=0; c<gl.noc; c++) {
 			var i0 = (c==0) ? 0 : (gl.endPts[c-1] + 1);
 			var il = gl.endPts[c];
@@ -219,11 +219,11 @@ Typr["U"] = {
 			P.ClosePath(p);
 		}
 	},
-	"_compoGlyph" : function(gl, font, p) {
+	_compoGlyph: function(gl, font, p) {
 		for(var j=0; j<gl.parts.length; j++) {
 			var path = { cmds:[], crds:[] };
 			var prt = gl.parts[j];
-			Typr["U"]["_drawGlyf"](prt.glyphIndex, font, path);
+			U._drawGlyf(prt.glyphIndex, font, path);
 			
 			var m = prt.m;
 			for(var i=0; i<path.crds.length; i+=2) {
@@ -235,7 +235,7 @@ Typr["U"] = {
 		}
 	},
 
-	"pathToSVG" : function(path, prec)
+	pathToSVG: function(path, prec)
 	{
 		var cmds = path["cmds"], crds = path["crds"];
 		if(prec==null) prec = 5;
@@ -248,13 +248,13 @@ Typr["U"] = {
 		}
 		return out.join("");
 	},
-	"SVGToPath" : function(d) {
+	SVGToPath: function(d) {
 		var pth = {cmds:[], crds:[]};
-		Typr["U"]["SVG"].svgToPath(d, pth);
+		U.SVG.svgToPath(d, pth);
 		return {"cmds":pth.cmds, "crds":pth.crds};
 	},
 
-	"pathToContext" : function(path, ctx) {
+	pathToContext: function(path, ctx) {
 		var c = 0, cmds = path["cmds"], crds = path["crds"];
 		
 		for(var j=0; j<cmds.length; j++) {
@@ -288,7 +288,7 @@ Typr["U"] = {
 		}
 	},
 
-	"P" : {
+	P: {
 		MoveTo    : function(p, x, y)        {  p.cmds.push("M");  p.crds.push(x,y);  },
 		LineTo    : function(p, x, y)        {  p.cmds.push("L");  p.crds.push(x,y);  },
 		CurveTo   : function(p, a,b,c,d,e,f) {  p.cmds.push("C");  p.crds.push(a,b,c,d,e,f);  },
@@ -296,13 +296,13 @@ Typr["U"] = {
 		ClosePath : function(p)              {  p.cmds.push("Z");  }
 	},
 
-	"_drawCFF" : function(cmds, state, font, pdct, p)
+	_drawCFF: function(cmds, state, font, pdct, p)
 	{
 		var stack = state.stack;
 		var nStems = state.nStems, haveWidth=state.haveWidth, width=state.width, open=state.open;
 		var i=0;
 		var x=state.x, y=state.y, c1x=0, c1y=0, c2x=0, c2y=0, c3x=0, c3y=0, c4x=0, c4y=0, jpx=0, jpy=0;
-		var CFF = Typr["T"].CFF, P = Typr["U"]["P"];
+		var P = U.P;
 		
 		var nominalWidthX = pdct["nominalWidthX"];
 		var o = {val:0,size:0};
@@ -495,9 +495,9 @@ Typr["U"] = {
 					//console.log(achar, aind);
 					//state.x=x; state.y=y; state.nStems=nStems; state.haveWidth=haveWidth; state.width=width;  state.open=open;
 					
-					Typr["U"]["_drawCFF"](font["CharStrings"][bind], state,font,pdct,p);
+					U._drawCFF(font["CharStrings"][bind], state,font,pdct,p);
 					state.x = adx; state.y = ady;
-					Typr["U"]["_drawCFF"](font["CharStrings"][aind], state,font,pdct,p);
+					U._drawCFF(font["CharStrings"][aind], state,font,pdct,p);
 					
 					//x=state.x; y=state.y; nStems=state.nStems; haveWidth=state.haveWidth; width=state.width;  open=state.open;
 				}
@@ -602,7 +602,7 @@ Typr["U"] = {
 					var ind = stack.pop();
 					var subr = obj["Subrs"][ ind + obj["Bias"] ];
 					state.x=x; state.y=y; state.nStems=nStems; state.haveWidth=haveWidth; state.width=width;  state.open=open;
-					Typr["U"]["_drawCFF"](subr, state,font,pdct,p);
+					U._drawCFF(subr, state,font,pdct,p);
 					x=state.x; y=state.y; nStems=state.nStems; haveWidth=state.haveWidth; width=state.width;  open=state.open;
 				}
 			}
@@ -652,7 +652,7 @@ Typr["U"] = {
 	},
 
 
-	"SVG" : function() {
+	SVG: function() {
 		var M = {
 			getScale : function(m) {  return Math.sqrt(Math.abs(m[0]*m[3]-m[1]*m[2]));  },
 			translate: function(m,x,y) {  M.concat(m, [1,0,0,1,x,y]);  },
@@ -940,101 +940,100 @@ Typr["U"] = {
 				}
 			}
 		};
-		return {  "cssMap":cssMap, "readTrnf":readTrnf, svgToPath:svgToPath, toPath:toPath };
+		return { cssMap, readTrnf, svgToPath, toPath };
 	}(),
-	
-	
 
-
-	"initHB": function(hurl,resp) {
-	var codeLength = function(code) {
-		var len=0;
-		if     ((code&(0xffffffff-(1<< 7)+1))==0) {  len=1;  }
-		else if((code&(0xffffffff-(1<<11)+1))==0) {  len=2;  }
-		else if((code&(0xffffffff-(1<<16)+1))==0) {  len=3;  }
-		else if((code&(0xffffffff-(1<<21)+1))==0) {  len=4;  }
-		return len;
-	}
-	var te = new window["TextEncoder"]("utf8");
+	initHB: function(hurl,resp) {
+		var codeLength = function(code) {
+			var len=0;
+			if     ((code&(0xffffffff-(1<< 7)+1))==0) {  len=1;  }
+			else if((code&(0xffffffff-(1<<11)+1))==0) {  len=2;  }
+			else if((code&(0xffffffff-(1<<16)+1))==0) {  len=3;  }
+			else if((code&(0xffffffff-(1<<21)+1))==0) {  len=4;  }
+			return len;
+		};
+		var te = new window["TextEncoder"]("utf8");
 	
-	fetch(hurl)
-		.then(function (x  ) { return x["arrayBuffer"](); })
-		.then(function (ab ) { return WebAssembly["instantiate"](ab); })
-		.then(function (res) {
-			console.log("HB ready");
-			var exp = res["instance"]["exports"], mem=exp["memory"];
-			mem["grow"](700); // each page is 64kb in size
-			var heapu8  = new Uint8Array (mem.buffer);
-			var u32 = new Uint32Array(mem.buffer);
-			var i32 = new Int32Array (mem.buffer);
-			var __lastFnt, blob,blobPtr,face,font;
-			
-			Typr["U"]["shapeHB"] = (function () {
+		fetch(hurl)
+			.then(function (x  ) { return x["arrayBuffer"](); })
+			.then(function (ab ) { return WebAssembly["instantiate"](ab); })
+			.then(function (res) {
+				console.log("HB ready");
+				var exp = res["instance"]["exports"], mem=exp["memory"];
+				mem["grow"](700); // each page is 64kb in size
+				var heapu8  = new Uint8Array (mem.buffer);
+				var u32 = new Uint32Array(mem.buffer);
+				var i32 = new Int32Array (mem.buffer);
+				var __lastFnt, blob,blobPtr,face,font;
 				
-				var toJson = function (ptr) {
-					var length = exp["hb_buffer_get_length"](ptr);
-					var result = [];
-					var iPtr32 = exp["hb_buffer_get_glyph_infos"](ptr, 0) >>>2;
-					var pPtr32 = exp["hb_buffer_get_glyph_positions"](ptr, 0) >>>2;
-					for(var i=0; i<length; ++i) {
-						var a=iPtr32+i*5, b=pPtr32+i*5;
-					  result.push({
-						"g" : u32[a + 0],
-						"cl": u32[a + 2],
-						"ax": i32[b + 0],
-						"ay": i32[b + 1],
-						"dx": i32[b + 2],
-						"dy": i32[b + 3]
-					  });
-					}
-					return result;
-				}
-				return function (fnt, str, ltr) {
-					var fdata = fnt["_data"], fn = fnt["name"]["postScriptName"];
+				U.shapeHB = (function () {
 					
-					if(__lastFnt!=fn) {
-						if(blob!=null) {  
-							exp["hb_blob_destroy"](blob);
-							exp["free"](blobPtr);
-							exp["hb_face_destroy"](face);
-							exp["hb_font_destroy"](font);
+					var toJson = function (ptr) {
+						var length = exp["hb_buffer_get_length"](ptr);
+						var result = [];
+						var iPtr32 = exp["hb_buffer_get_glyph_infos"](ptr, 0) >>>2;
+						var pPtr32 = exp["hb_buffer_get_glyph_positions"](ptr, 0) >>>2;
+						for(var i=0; i<length; ++i) {
+							var a=iPtr32+i*5, b=pPtr32+i*5;
+						result.push({
+							"g" : u32[a + 0],
+							"cl": u32[a + 2],
+							"ax": i32[b + 0],
+							"ay": i32[b + 1],
+							"dx": i32[b + 2],
+							"dy": i32[b + 3]
+						});
 						}
-						blobPtr = exp["malloc"](fdata.byteLength);  heapu8.set(fdata, blobPtr);
-						blob = exp["hb_blob_create"](blobPtr, fdata.byteLength, 2, 0, 0);
-						face = exp["hb_face_create"](blob, 0);
-						font = exp["hb_font_create"](face)
-						__lastFnt = fn;
+						return result;
 					}
-					
-					var buffer = exp["hb_buffer_create"]();
-					var bytes = te["encode"](str);
-					var len=bytes.length, strp = exp["malloc"](len);  heapu8.set(bytes, strp);
-					exp["hb_buffer_add_utf8"](buffer, strp, len, 0, len);
-					exp["free"](strp);
-					
-					exp["hb_buffer_set_direction"](buffer,ltr?4:5);
-					exp["hb_buffer_guess_segment_properties"](buffer);
-					exp["hb_shape"](font, buffer, 0, 0);
-					var json = toJson(buffer)//buffer["json"]();
-					exp["hb_buffer_destroy"](buffer);
-					
-					var arr = json.slice(0);  if(!ltr) arr.reverse();
-					var ci=0, bi=0;  // character index, binary index
-					for(var i=1; i<arr.length; i++) {
-						var gl = arr[i], cl=gl["cl"];
-						while(true) {
-							var cpt = str.codePointAt(ci), cln = codeLength(cpt);
-							if(bi+cln <=cl) {  bi+=cln;  ci += cpt<=0xffff ? 1 : 2;  }
-							else break;
+					return function (fnt, str, ltr) {
+						var fdata = fnt["_data"], fn = fnt["name"]["postScriptName"];
+						
+						if(__lastFnt!=fn) {
+							if(blob!=null) {  
+								exp["hb_blob_destroy"](blob);
+								exp["free"](blobPtr);
+								exp["hb_face_destroy"](face);
+								exp["hb_font_destroy"](font);
+							}
+							blobPtr = exp["malloc"](fdata.byteLength);  heapu8.set(fdata, blobPtr);
+							blob = exp["hb_blob_create"](blobPtr, fdata.byteLength, 2, 0, 0);
+							face = exp["hb_face_create"](blob, 0);
+							font = exp["hb_font_create"](face)
+							__lastFnt = fn;
 						}
-						//while(bi+codeLength(str.charCodeAt(ci)) <=cl) {  bi+=codeLength(str.charCodeAt(ci));  ci++;  }
-						gl["cl"]=ci;
+						
+						var buffer = exp["hb_buffer_create"]();
+						var bytes = te["encode"](str);
+						var len=bytes.length, strp = exp["malloc"](len);  heapu8.set(bytes, strp);
+						exp["hb_buffer_add_utf8"](buffer, strp, len, 0, len);
+						exp["free"](strp);
+						
+						exp["hb_buffer_set_direction"](buffer,ltr?4:5);
+						exp["hb_buffer_guess_segment_properties"](buffer);
+						exp["hb_shape"](font, buffer, 0, 0);
+						var json = toJson(buffer)//buffer["json"]();
+						exp["hb_buffer_destroy"](buffer);
+						
+						var arr = json.slice(0);  if(!ltr) arr.reverse();
+						var ci=0, bi=0;  // character index, binary index
+						for(var i=1; i<arr.length; i++) {
+							var gl = arr[i], cl=gl["cl"];
+							while(true) {
+								var cpt = str.codePointAt(ci), cln = codeLength(cpt);
+								if(bi+cln <=cl) {  bi+=cln;  ci += cpt<=0xffff ? 1 : 2;  }
+								else break;
+							}
+							//while(bi+codeLength(str.charCodeAt(ci)) <=cl) {  bi+=codeLength(str.charCodeAt(ci));  ci++;  }
+							gl["cl"]=ci;
+						}
+						return json;
 					}
-					return json;
-				}
-			}());
+				}()
+			);
 			resp();
 		});	
 	}
 }
 
+export default U;
