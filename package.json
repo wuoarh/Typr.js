@@ -1,5 +1,6 @@
 {
-    "name": "Typr.js",
+    "name": "typr.js",
+    "version": "0.0.2",
     "dependencies": {
         "eslint": "^7.32.0"
     }
